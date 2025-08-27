@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="hi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>amar0001's GitHub Repositories</title>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background: #0f1724;
+          color: #e6eef8;
+          font-family: Arial, sans-serif;
+        }
+        .container {
+          max-width: 1000px;
+          margin: 40px auto;
+          padding: 0 16px;
+        }
+        h1 {
+          font-size: 24px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 16px;
+        }
+        .card {
+          background: #112;
+          padding: 16px;
+          border-radius: 8px;
+          border: 1px solid #223;
+          transition: transform 0.2s;
+        }
+        .card:hover {
+          transform: translateY(-4px);
+        }
+        .repo-name {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .repo-name a {
+          color: #58a6ff;
+          text-decoration: none;
+        }
+        .repo-desc {
+          font-size: 14px;
+          color: #a0aed0;
+          margin-bottom: 12px;
+        }
+        .repo-meta {
+          font-size: 13px;
+          color: #a0aed0;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .lang {
+          padding: 4px 8px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .status {
+          text-align: center;
+          margin: 20px 0;
+          font-size: 16px;
+        }
+        .error {
+          background: #ffb4b4;
+          color: #500;
+          padding: 12px;
+          border-radius: 8px;
+          text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Hello</h1>
+    <div id="status" class="status"></div>
+    <div id="repoGrid" class="grid"></div>
+</div>
+
+<script>
+    const statusEl = document.getElementById('status');
+    const gridEl = document.getElementById('repoGrid');
+
+    const languageColors = {
+      JavaScript: '#f1e05a',
+      Kotlin: '#A97BFF',
+      Java: '#b07219',
+      Python: '#3572A5',
+      HTML: '#e34c26',
+      CSS: '#563d7c',
+      TypeScript: '#2b7489'
+    };
+
+    function getLangColor(lang) {
+      return languageColors[lang] || '#6b7280';
+    }
+
+    async function loadRepos() {
+      try {
+        const res = await fetch(
+          'https://api.github.com/users/amar0001/repos?per_page=100&sort=updated'
+        );
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Unexpected response');
+
+        if (data.length === 0) {
+          statusEl.textContent = 'कोई रिपॉजिटरी नहीं मिली।';
+          return;
+        }
+
+
+        for (const r of data) {
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          const title = document.createElement('div');
+          title.className = 'repo-name';
+          const a = document.createElement('a');
+          a.href = r.html_url;
+          a.target = '_blank';
+          a.textContent = r.name;
+          title.appendChild(a);
+          card.appendChild(title);
+
+          if (r.description) {
+            const desc = document.createElement('div');
+            desc.className = 'repo-desc';
+            desc.textContent = r.description;
+            card.appendChild(desc);
+          }
+
+          const meta = document.createElement('div');
+          meta.className = 'repo-meta';
+          if (r.language) {
+            const langSpan = document.createElement('span');
+            langSpan.className = 'lang';
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.style.backgroundColor = getLangColor(r.language);
+            langSpan.appendChild(dot);
+            langSpan.append(r.language);
+            meta.appendChild(langSpan);
+          }
+          meta.append(`★ ${r.stargazers_count}`);
+          meta.append(`Forks: ${r.forks_count}`);
+          meta.append(`Updated: ${new Date(r.updated_at).toLocaleDateString('hi-IN')}`);
+          card.appendChild(meta);
+
+          gridEl.appendChild(card);
+        }
+      } catch (err) {
+        statusEl.innerHTML = `<div class="error">${err.message}</div>`;
+      }
+    }
+
+    loadRepos();
+</script>
+</body>
+</html>
